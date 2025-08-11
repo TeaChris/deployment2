@@ -5,6 +5,7 @@ import { signupSchema, TSignUpSchema, cn } from '@/utils'
 import { Button, buttonVariants, Checkbox, Input, Label } from '@/components'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 import { toast } from 'sonner'
 import { useForm, Controller } from 'react-hook-form'
@@ -15,6 +16,8 @@ import { IUser } from '@/types'
 type TSignUpPayload = Omit<TSignUpSchema, 'confirmPassword'>
 
 export default function Page() {
+  const router = useRouter()
+
   const {
     reset,
     register,
@@ -36,7 +39,11 @@ export default function Page() {
     {
       onSuccess: () => {
         toast.success('Account created successfully')
+        router.push('/verify-email')
         reset()
+      },
+      onError: (error) => {
+        toast.error(error.message)
       },
     }
   )
