@@ -44,19 +44,21 @@ export function useApiMutation<T, V>(
   mutationKey: string[],
   endpoint: string,
   method: 'POST' | 'PUT' | 'DELETE' | 'PATCH',
+  wrapKey?: string,
   options?: UseMutationOptions<ApiResponse<T>, Error, V>
 ) {
   return useMutation<ApiResponse<T>, Error, V>({
     mutationKey,
-    mutationFn: (payload: V) =>
-      api<T>(
-        endpoint,
-        payload as Record<string, unknown> | FormData | undefined,
-        method
-      ).then((res) => {
+    mutationFn: (variables: V) => {
+      let payload = variables as Record<string, unknown> | FormData | undefined;
+      if (wrapKey) {
+        payload = { [wrapKey]: variables };
+      }
+      return api<T>(endpoint, payload, method).then((res) => {
         if (res.error) throw new Error(res.error.message)
         return res.data!
-      }),
+      });
+    },
     ...options,
   })
 }
