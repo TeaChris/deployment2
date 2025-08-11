@@ -1,36 +1,85 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<!-- GET -->
 
-## Getting Started
+function UserList() {
+const { data, isLoading, error } = useApiQuery<User[]>(
+['users'], // Query key for caching
+'/users', // API endpoint
+{ enabled: true } // Optional: enable the query
+);
 
-First, run the development server:
+if (isLoading) return <div>Loading...</div>;
+if (error) return <div>Error: {error.message}</div>;
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+return (
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+<ul>
+{data?.map(user => <li key={user.id}>{user.name}</li>)}
+</ul>
+);
+}
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+<!-- POST -->
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+function CreateUser() {
+const mutation = useApiMutation<User, { name: string }>(
+['createUser'],
+'/users',
+'POST',
+{ onSuccess: () => alert('User created!') }
+);
 
-## Learn More
+const handleSubmit = () => {
+mutation.mutate({ name: 'New User' });
+};
 
-To learn more about Next.js, take a look at the following resources:
+return (
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+<div>
+<button onClick={handleSubmit}>Create User</button>
+</div>
+);
+}
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+<!-- PUT -->
 
-## Deploy on Vercel
+function UpdateUser({ userId }: { userId: string }) {
+const mutation = useApiMutation<User, { name: string }>(
+['updateUser'],
+`/users/${userId}`,
+'PUT',
+{ onSuccess: () => alert('User updated!') }
+);
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+const handleUpdate = () => {
+mutation.mutate({ name: 'Updated Name' });
+};
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+return (
+
+<div>
+<button onClick={handleUpdate}>Update</button>
+</div>
+);
+}
+
+<!-- PATCH -->
+
+function PatchUser({ userId }: { userId: string }) {
+const mutation = useApiMutation<User, { name?: string }>(
+['patchUser'],
+`/users/${userId}`,
+'PATCH',
+{ onSuccess: () => alert('User patched!') }
+);
+
+const handlePatch = () => {
+mutation.mutate({ name: 'Patched Name' });
+};
+
+return (
+
+<div>
+<button onClick={handlePatch}>Patch</button>
+</div>
+);
+}
