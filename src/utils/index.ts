@@ -12,5 +12,5 @@
  */
 export * from './utils'
 export * from './schema'
-export * from './callApi'
+export * from './useApi'
 export * from './query.client'
