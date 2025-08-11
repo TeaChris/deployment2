@@ -20,6 +20,7 @@ import { isObject } from '@/utils'
 import { ApiResponse, ApiError } from '@/types'
 import { refreshToken, addRequestToQueue } from '@/config'
 
+const BASEURL = process.env.NEXT_PUBLIC_BASE_URL
 const FRONTENDURL = process.env.NEXT_PUBLIC_FRONTEND_URL
 
 /* ---------- Cancel token store ---------- */
@@ -36,7 +37,7 @@ function getCancelToken(endpoint: string): CancelTokenSource {
 
 /* ---------- Axios instance ---------- */
 export const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
+  baseURL: BASEURL,
   withCredentials: true,
 })
 
