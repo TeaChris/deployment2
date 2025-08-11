@@ -1,15 +1,13 @@
 'use client'
 
-import { buttonVariants, Loader } from '@/components'
+import { Loader } from '@/components'
 import { useApiMutation } from '@/config'
 import { IUser } from '@/types'
 
 import { toast } from 'sonner'
-import { ArrowRight } from 'lucide-react'
 
 import { useEffect } from 'react'
 
-import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 
 const Page = () => {
