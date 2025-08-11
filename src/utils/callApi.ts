@@ -11,13 +11,17 @@
  * ############################################################################### *
  */
 
-import axios, { AxiosInstance, AxiosResponse } from 'axios'
-
-import { ApiError, ApiResponse } from '@/types'
-
-// import { useInitSession } from '@/store'
-
+import axios, {
+  AxiosInstance,
+  AxiosResponse,
+  AxiosError,
+  CancelTokenSource,
+} from 'axios'
 import { toast } from 'sonner'
+import Router from 'next/router'
+
+import { isObject } from './utils'
+import { ApiError, ApiResponse } from '@/types'
 
 const BASEURL = process.env.NEXT_PUBLIC_BASE_URL
 const FRONTENDURL = process.env.NEXT_PUBLIC_FRONTEND_URL
@@ -26,36 +30,60 @@ if (!BASEURL) {
   throw new Error('add BASEURL to your env file')
 }
 
-export const isObject = (value: unknown): value is Record<string, unknown> => {
-  const isArray = Array.isArray(value)
-  const isFormData = value instanceof FormData
-  const isObject = typeof value === 'object' && value !== null
-
-  return !isArray && !isFormData && isObject
-}
-
+// axios client
 const apiClient: AxiosInstance = axios.create({
   baseURL: BASEURL,
-  withCredentials: true,
+  withCredentials: true, // allows sending HttpOnly cookies
 })
+
+// REQUEST CANCELLATION MAP
+const cancelTokens = new Map<string, CancelTokenSource>()
+
+function getCancelToken(endpoint: string) {
+  if (cancelTokens.has(endpoint)) {
+    cancelTokens.get(endpoint)?.cancel('Canceled due to new request')
+  }
+  const source = axios.CancelToken.source()
+  cancelTokens.set(endpoint, source)
+  return source
+}
+
+// RETRY LOGIC
+async function retryAfterRefresh<T>(
+  error: AxiosError
+): Promise<AxiosResponse<T>> {
+  await apiClient.get('/auth/refresh')
+  const config = error.config
+  if (!config) throw new Error('No config available for retry')
+  return apiClient.request<T>(config)
+}
+
+// REDIRECT HANDLER
+function handleRedirect(status: number) {
+  const redirects: Record<number, string> = {
+    401: '/sign-in',
+    403: '/', // unauthorized
+    404: '/not-found',
+    422: '/verify-email',
+    500: '/error',
+  }
+  if (redirects[status]) {
+    Router.replace(redirects[status])
+  }
+}
 
 export const callApi = async <T>(
   endpoint: string,
   data?: Record<string, unknown> | FormData,
-  extraMethods?: 'PUT' | 'DELETE' | 'PATCH'
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
 ): Promise<{ data?: ApiResponse<T>; error?: ApiError }> => {
-  const cancelTokenSource = axios.CancelToken.source()
+  const cancelToken = getCancelToken(endpoint)
 
   try {
     const response: AxiosResponse<ApiResponse<T>> = await apiClient.request<
       ApiResponse<T>
     >({
-      method:
-        extraMethods && data
-          ? extraMethods
-          : data && !extraMethods
-          ? 'POST'
-          : 'GET',
+      method: method || (data ? 'POST' : 'GET'),
       url: endpoint,
       ...(data && { data }),
       headers: {
@@ -69,90 +97,75 @@ export const callApi = async <T>(
               'Content-Type': 'multipart/form-data',
             }),
       },
-      cancelToken: cancelTokenSource.token,
+      cancelToken: cancelToken.token,
     })
 
     return { data: response.data }
-  } catch (error) {
-    let apiError: ApiError | undefined
-    if (axios.isCancel(error)) {
-      console.error('Previous request was canceled')
-    }
-    if (axios.isAxiosError(error) && error.response) {
-      const { status, data } = error.response
-      apiError = data
-      switch (status) {
-        case 400:
-          toast.error(data.message || 'Invalid request')
-          break
-        case 401:
-          {
-            try {
-              await apiClient.get('/auth/refresh')
-              const config = error.config
-              if (!config) {
-                throw new Error('Cannot retry request without config')
-              }
-              const retryResponse = await apiClient.request<ApiResponse<T>>(
-                config
-              )
-              if (retryResponse.data) {
-                return { data: retryResponse.data }
-              }
-            } catch {
-              // Refresh failed → force logout
-              //   useAuthStore.getState().logout()
-              window.location.href = '/sign-in'
-            }
-          }
-          break
-        case 403:
-          toast.error(
-            error.message || 'You do not have permission to perform this action'
-          )
+  } catch (err) {
+    const error = err as AxiosError
+    const response = error.response
 
-          window.location.href = '/'
-          break
-        case 404:
-          // resource not found
-          toast.error(error.message)
-          window.location.href = '/not-found'
-          break
-        case 408:
-          toast.error(error.message || 'Request timed out. Please try again.')
-          break
-        case 422:
-          toast.error(
-            error.message || 'Please verify your email before continuing.'
-          )
-          window.location.href = '/verify-email'
-          break
-        case 429:
-          toast.error(
-            error.message || 'Too many requests. Please try again later.'
-          )
-          console.error('Bad request')
-          break
-        case 500:
-          // internal server error
-          // redirect to error page
-          toast.error(error.message)
-          console.error(`Internal server error`)
-          window.location.href = '/error'
-          break
-        case 502:
-        case 503:
-        case 504:
-          toast.error('Server is temporarily unavailable. Please try later.')
-          break
-        default:
-          console.error(`Unknown API error: ${status}`)
-      }
-    } else {
-      if (error instanceof Error) {
-        apiError = { message: error.message, status: 'Error' }
-      }
+    // Network or CORS error
+    if (!response) {
+      toast.error('Network error. Please check your connection.')
+      return { error: { message: 'Network error', status: 'Error' } }
     }
+
+    const status = response.status
+    const apiError: ApiError = response.data as ApiError
+
+    switch (status) {
+      case 400:
+        toast.error(apiError.message || 'Invalid request')
+        break
+
+      case 401:
+        try {
+          const retryResponse = await retryAfterRefresh<ApiResponse<T>>(error)
+          return { data: retryResponse.data }
+        } catch {
+          toast.error('Session expired. Please sign in again.')
+          handleRedirect(401)
+        }
+        break
+
+      case 403:
+        toast.error(apiError.message || 'Permission denied')
+        handleRedirect(403)
+        break
+
+      case 404:
+        toast.error(apiError.message || 'Resource not found')
+        handleRedirect(404)
+        break
+
+      case 408:
+        toast.error(apiError.message || 'Request timed out. Please try again.')
+        break
+
+      case 422:
+        toast.error(
+          apiError.message || 'Please verify your email before continuing.'
+        )
+        handleRedirect(422)
+        break
+
+      case 429:
+        toast.error(apiError.message || 'Too many requests. Try again later.')
+        break
+
+      case 500:
+      case 502:
+      case 503:
+      case 504:
+        toast.error('Server error. Please try again later.')
+        handleRedirect(500)
+        break
+
+      default:
+        console.error(`Unhandled API error: ${status}`, apiError)
+    }
+
     return { error: apiError }
   }
 }
