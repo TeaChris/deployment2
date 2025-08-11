@@ -25,17 +25,17 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html
-      lang="en"
-      className={cn(
-        'bg-white text-slate-900 antialiased light',
-        comfortaa.className
-      )}
-    >
-      <Providers>
+    <Providers>
+      <html
+        lang="en"
+        className={cn(
+          'bg-white text-slate-900 antialiased light',
+          comfortaa.className
+        )}
+      >
         <body
           className={cn(
-            'min-h-screen pt-12 bg-slate-50 antialiased w-full overflow-x-hidden'
+            'min-h-screen pt-8 bg-slate-50 antialiased w-full overflow-x-hidden'
           )}
         >
           <Navbar />
@@ -43,7 +43,7 @@ export default function RootLayout({
             {children}
           </div>
         </body>
-      </Providers>
-    </html>
+      </html>
+    </Providers>
   )
 }
