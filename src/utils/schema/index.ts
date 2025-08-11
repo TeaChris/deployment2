@@ -56,6 +56,7 @@ export const signupSchema = z
         'Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number, and one special character (@, ., !, #, $, %, &, *)'
       )
       .transform((value) => value.trim()),
+    isTermAndConditionAccepted: z.boolean().refine((val) => val === true, { message: 'You must accept the terms and conditions' }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'Passwords do not match',
