@@ -48,10 +48,10 @@ export function useApiMutation<T, V>(
 ) {
   return useMutation<ApiResponse<T>, Error, V>({
     mutationKey,
-    mutationFn: (data: V) =>
+    mutationFn: (payload: V) =>
       api<T>(
         endpoint,
-        data as Record<string, unknown> | FormData | undefined,
+        payload as Record<string, unknown> | FormData | undefined,
         method
       ).then((res) => {
         if (res.error) throw new Error(res.error.message)
