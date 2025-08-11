@@ -1,14 +1,18 @@
 'use client'
 
+import { useApiMutation } from '@/config'
 import { signupSchema, TSignUpSchema, cn } from '@/utils'
-import { Button, buttonVariants, Input, Label } from '@/components'
+import { Button, buttonVariants, Checkbox, Input, Label } from '@/components'
 
 import Link from 'next/link'
 
 import { toast } from 'sonner'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { ArrowRight } from 'lucide-react'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { IUser } from '@/types'
+
+type TSignUpPayload = Omit<TSignUpSchema, 'confirmPassword'>
 
 export default function Page() {
   const {
@@ -16,20 +20,35 @@ export default function Page() {
     register,
     handleSubmit,
     formState: { errors },
+    control,
   } = useForm<TSignUpSchema>({
     resolver: zodResolver(signupSchema),
+    defaultValues: {
+      isTermAndConditionAccepted: false,
+    },
   })
 
-  const onSubmit = (values: TSignUpSchema) => {
-    reset()
-  }
+  const { mutate, isPending } = useApiMutation<IUser, TSignUpPayload>(
+    ['signUp'],
+    '/auth/signup',
+    'POST',
+    undefined,
+    {
+      onSuccess: () => {
+        toast.success('Account created successfully')
+        reset()
+      },
+    }
+  )
 
   return (
     <>
       <div className="container relative flex pt-20 flex-col items-center justify-center lg:px-0">
         <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
           <div className="flex flex-col items-center space-y-2 text-center">
-            <div className="text-2xl font-extrabold text-primary">Flash.</div>
+            <div className="text-2xl font-extrabold text-primary">
+              🚀 Flash.
+            </div>
             <h1 className="text-2xl font-semibold tracking-tight">
               Signup to flash.
             </h1>
@@ -46,7 +65,12 @@ export default function Page() {
           </div>
 
           <div className="grid gap-6">
-            <form onSubmit={handleSubmit(onSubmit)}>
+            <form
+              onSubmit={handleSubmit((data) => {
+                const { ...payload } = data
+                mutate(payload)
+              })}
+            >
               <div className="grid gap-2">
                 <div className="grid gap-1 py-2">
                   <Label htmlFor="username">Username</Label>
@@ -56,7 +80,7 @@ export default function Page() {
                       'focus-visible:ring-red-500': errors.username,
                     })}
                     placeholder="User"
-                    // disabled={isPending}
+                    disabled={isPending}
                   />
                   {errors?.username && (
                     <p className="text-sm text-red-500">
@@ -73,7 +97,7 @@ export default function Page() {
                       'focus-visible:ring-red-500': errors.email,
                     })}
                     placeholder="you@example.com"
-                    // disabled={isPending}
+                    disabled={isPending}
                   />
                   {errors?.email && (
                     <p className="text-sm text-red-500">
@@ -91,7 +115,7 @@ export default function Page() {
                       'focus-visible:ring-red-500': errors.password,
                     })}
                     placeholder="Password"
-                    // disabled={isPending}
+                    disabled={isPending}
                   />
                   {errors?.password && (
                     <p className="text-sm text-red-500">
@@ -109,7 +133,7 @@ export default function Page() {
                       'focus-visible:ring-red-500': errors.confirmPassword,
                     })}
                     placeholder="Password"
-                    // disabled={isPending}
+                    disabled={isPending}
                   />
                   {errors?.confirmPassword && (
                     <p className="text-sm text-red-500">
@@ -117,7 +141,31 @@ export default function Page() {
                     </p>
                   )}
                 </div>
-                <Button>sign up</Button>
+
+                <div className="grid gap-1 py-2">
+                  <div className="w-full flex gap-x-2">
+                    <Controller
+                      name="isTermAndConditionAccepted"
+                      control={control}
+                      render={({ field }) => (
+                        <Checkbox
+                          id="terms"
+                          checked={field.value}
+                          disabled={isPending}
+                          onCheckedChange={field.onChange}
+                        />
+                      )}
+                    />
+                    <Label htmlFor="terms">Accept terms and conditions</Label>
+                  </div>
+
+                  {errors?.isTermAndConditionAccepted && (
+                    <p className="text-sm text-red-500">
+                      {errors.isTermAndConditionAccepted.message}
+                    </p>
+                  )}
+                </div>
+                <Button isLoading={isPending}>sign up</Button>
               </div>
             </form>
           </div>
