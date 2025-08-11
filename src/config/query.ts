@@ -11,7 +11,13 @@
  * ############################################################################### *
  */
 
-import { useQuery, UseQueryOptions } from '@tanstack/react-query'
+import {
+  useQuery,
+  UseQueryOptions,
+  useMutation,
+  UseMutationOptions,
+} from '@tanstack/react-query'
+
 import { api } from '@/utils'
 import { ApiResponse } from '@/types'
 
@@ -30,6 +36,27 @@ export function useApiQuery<T>(
     retry: 2, // central retry
     refetchOnWindowFocus: true,
     staleTime: 60 * 1000,
+    ...options,
+  })
+}
+
+export function useApiMutation<T, V>(
+  mutationKey: string[],
+  endpoint: string,
+  method: 'POST' | 'PUT' | 'DELETE' | 'PATCH',
+  options?: UseMutationOptions<ApiResponse<T>, Error, V>
+) {
+  return useMutation<ApiResponse<T>, Error, V>({
+    mutationKey,
+    mutationFn: (variables: V) =>
+      api<T>(
+        endpoint,
+        variables as Record<string, unknown> | FormData | undefined,
+        method
+      ).then((res) => {
+        if (res.error) throw new Error(res.error.message)
+        return res.data!
+      }),
     ...options,
   })
 }
