@@ -82,6 +82,9 @@ export const callApi = async <T>(
       const { status, data } = error.response
       apiError = data
       switch (status) {
+        case 400:
+          toast.error(data.message || 'Invalid request')
+          break
         case 401:
           {
             try {
@@ -96,15 +99,38 @@ export const callApi = async <T>(
               if (retryResponse.data) {
                 return { data: retryResponse.data }
               }
-            } catch (refetchError) {
+            } catch {
               // Refresh failed → force logout
               //   useAuthStore.getState().logout()
               window.location.href = '/sign-in'
             }
           }
           break
-        case 429:
+        case 403:
+          toast.error(
+            error.message || 'You do not have permission to perform this action'
+          )
+
+          window.location.href = '/'
+          break
+        case 404:
+          // resource not found
           toast.error(error.message)
+          window.location.href = '/not-found'
+          break
+        case 408:
+          toast.error(error.message || 'Request timed out. Please try again.')
+          break
+        case 422:
+          toast.error(
+            error.message || 'Please verify your email before continuing.'
+          )
+          window.location.href = '/verify-email'
+          break
+        case 429:
+          toast.error(
+            error.message || 'Too many requests. Please try again later.'
+          )
           console.error('Bad request')
           break
         case 500:
@@ -112,16 +138,13 @@ export const callApi = async <T>(
           // redirect to error page
           toast.error(error.message)
           console.error(`Internal server error`)
+          window.location.href = '/error'
           break
-        case 422:
-          // email has not been verified
-          toast.error(error.message)
+        case 502:
+        case 503:
+        case 504:
+          toast.error('Server is temporarily unavailable. Please try later.')
           break
-        case 404:
-          // resource not found
-          toast.error(error.message)
-          break
-
         default:
           console.error(`Unknown API error: ${status}`)
       }
