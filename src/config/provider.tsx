@@ -14,7 +14,7 @@ export default function Providers({ children }: Props) {
   return (
     <QueryClientProvider client={queryClient}>
       {children}
-      <Toaster />
+      <Toaster duration={8000} position={'top-center'} richColors />
     </QueryClientProvider>
   )
 }
