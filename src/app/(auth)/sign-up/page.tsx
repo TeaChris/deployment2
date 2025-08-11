@@ -7,7 +7,7 @@ import Link from 'next/link'
 
 import { toast } from 'sonner'
 import { useForm } from 'react-hook-form'
-import { ArrowRight, Loader2 } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { zodResolver } from '@hookform/resolvers/zod'
 
 export default function Page() {
