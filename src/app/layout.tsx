@@ -1,11 +1,10 @@
 import type { Metadata } from 'next'
 import { Comfortaa } from 'next/font/google'
 
-import { Toaster } from 'sonner'
-
 import './globals.css'
 import { cn } from '@/utils'
 import { Navbar } from '@/components'
+import Providers from '@/config/provider'
 
 const comfortaa = Comfortaa({
   subsets: ['latin'],
@@ -33,18 +32,18 @@ export default function RootLayout({
         comfortaa.className
       )}
     >
-      <body
-        className={cn(
-          'min-h-screen pt-12 bg-slate-50 antialiased w-full overflow-x-hidden'
-        )}
-      >
-        <Navbar />
-        <div className="container max-w-7xl mx-auto h-full pt-12">
-          {children}
-        </div>
-
-        <Toaster />
-      </body>
+      <Providers>
+        <body
+          className={cn(
+            'min-h-screen pt-12 bg-slate-50 antialiased w-full overflow-x-hidden'
+          )}
+        >
+          <Navbar />
+          <div className="container max-w-7xl mx-auto h-full pt-12">
+            {children}
+          </div>
+        </body>
+      </Providers>
     </html>
   )
 }
