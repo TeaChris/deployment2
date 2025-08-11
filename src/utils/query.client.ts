@@ -19,8 +19,8 @@ let isRefreshing = false
 
 export const queryClient = new QueryClient({
   queryCache: new QueryCache({
-    onError: async (error: ApiError, query) => {
-      if (error?.status === 401) {
+    onError: async (error: unknown, query) => {
+      if ((error as ApiError)?.status === 401) {
         if (!isRefreshing) {
           isRefreshing = true
           try {
