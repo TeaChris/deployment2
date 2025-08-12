@@ -4,10 +4,13 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 import { buttonVariants } from './ui'
+import { useAuthStore } from '@/store'
+import { UserAccountNav } from './user.account.nav'
 
 const Navbar = () => {
   // const session = await getAuthSession()
   const pathname = usePathname()
+  const { user } = useAuthStore()
 
   return (
     <div className="fixed top-0 inset-x-0 h-fit bg-zinc-100 border-b border-zinc-300 z-[10] py-2">
@@ -20,11 +23,13 @@ const Navbar = () => {
 
         {/* search bar */}
 
-        {/* {session?.user ? ( */}
-        {/* <UserAccountNav user={session.user} /> */}
-        <Link href="/sign-in" className={buttonVariants()}>
-          sign in
-        </Link>
+        {user ? (
+          <UserAccountNav />
+        ) : (
+          <Link href="/sign-in" className={buttonVariants()}>
+            sign in
+          </Link>
+        )}
       </div>
     </div>
   )
