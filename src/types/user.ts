@@ -11,22 +11,25 @@
  * ############################################################################### *
  */
 
-export interface IUser {
-  role: Role
-  email: string
+export interface IUserBase {
   lastLogin: Date
   createdAt: Date
   updatedAt: Date
-  username: string
-  password: string
   ipAddress: string
   verificationToken: string
   isDeleted: boolean
   isSuspended: boolean
   loginRetries: number
   // refreshToken: string;
-  isEmailVerified: boolean
+
   isTermAndConditionAccepted: boolean
+}
+
+export interface IUser extends IUserBase {
+  isEmailVerified: boolean
+  username: string
+  email: string
+  role: Role
 }
 
 export enum Role {
