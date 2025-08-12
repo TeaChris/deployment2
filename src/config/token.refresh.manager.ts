@@ -18,10 +18,10 @@ import type { ApiResponse } from '@/types'
 const FRONTENDURL = process.env.NEXT_PUBLIC_FRONTEND_URL
 
 let refreshPromise: Promise<void> | null = null
-let requestQueue: (() => void)[] = []
+let requestQueue: Array<() => void> = []
 
-export function addRequestToQueue(callback: () => void) {
-  requestQueue.push(callback)
+export function addRequestToQueue(cb: () => void) {
+  requestQueue.push(cb)
 }
 
 function flushRequestQueue() {
@@ -35,14 +35,11 @@ export async function refreshToken(): Promise<void> {
     refreshPromise = (async () => {
       try {
         await axios.post<ApiResponse<null>>('/auth/refresh-token', null, {
-          baseURL: process.env.NEXT_PUBLIC_BASE_URL, // align with apiClient
+          baseURL: process.env.NEXT_PUBLIC_BASE_URL,
           withCredentials: true,
           headers: { 'x-referrer': FRONTENDURL ?? 'https://www.flash.com' },
         })
         flushRequestQueue()
-      } catch (err) {
-        requestQueue = [] // drop queued requests on failure
-        throw err
       } finally {
         refreshPromise = null
       }
