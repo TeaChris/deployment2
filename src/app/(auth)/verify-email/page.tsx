@@ -1,13 +1,11 @@
 'use client'
 
-import { Loader } from '@/components'
 import { useApiMutation } from '@/config'
+import { Loader } from '@/components'
 import { IUser } from '@/types'
 
 import { toast } from 'sonner'
-
 import { useEffect } from 'react'
-
 import { useRouter, useSearchParams } from 'next/navigation'
 
 const Page = () => {
@@ -15,17 +13,17 @@ const Page = () => {
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
 
-  const { mutate } = useApiMutation<IUser, string>(
+  const { mutate } = useApiMutation<IUser, { token: string }>(
     ['verifyEmail'],
     '/auth/verify-email',
     'POST',
-    token ?? undefined,
+    undefined,
     {
       onSuccess: () => {
         toast.success('Email verified successfully')
         router.push('/sign-in')
       },
-      onError: (error) => {
+      onError: (error: Error) => {
         toast.error(error.message)
       },
     }
@@ -33,7 +31,7 @@ const Page = () => {
 
   useEffect(() => {
     if (token) {
-      mutate(token)
+      mutate({ token })
     }
   }, [token, mutate])
 
