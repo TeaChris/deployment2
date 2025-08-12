@@ -25,25 +25,24 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <Providers>
-      <html
-        lang="en"
-        className={cn(
-          'bg-white text-slate-900 antialiased light',
-          comfortaa.className
-        )}
+    <html
+      lang="en"
+      className={cn(
+        'bg-white text-slate-900 antialiased light',
+        comfortaa.className
+      )}
+    >
+      <body
+        className="min-h-screen pt-8 bg-slate-50 antialiased w-full overflow-x-hidden"
+        suppressHydrationWarning
       >
-        <body
-          className={cn(
-            'min-h-screen pt-8 bg-slate-50 antialiased w-full overflow-x-hidden'
-          )}
-        >
+        <Providers>
           <Navbar />
-          <div className="container max-w-7xl mx-auto h-full pt-12">
+          <main className="container max-w-7xl mx-auto h-full pt-12">
             {children}
-          </div>
-        </body>
-      </html>
-    </Providers>
+          </main>
+        </Providers>
+      </body>
+    </html>
   )
 }
