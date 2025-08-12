@@ -25,21 +25,18 @@ export function addRequestToQueue(callback: () => void) {
 }
 
 function flushRequestQueue() {
-  const pending = requestQueue
+  requestQueue.forEach((cb) => cb())
   requestQueue = []
-  for (const cb of pending) cb()
 }
 
 export async function refreshToken(): Promise<void> {
   if (!refreshPromise) {
     refreshPromise = (async () => {
       try {
-        await axios.get<ApiResponse<null>>('/auth/refresh-token', {
-          baseURL: process.env.API_BASE_URL,
+        await axios.post<ApiResponse<null>>('/auth/refresh-token', null, {
+          baseURL: process.env.NEXT_PUBLIC_BASE_URL, // align with apiClient
           withCredentials: true,
-          headers: {
-            'x-referrer': FRONTENDURL ?? 'https://www.flash.com',
-          },
+          headers: { 'x-referrer': FRONTENDURL ?? 'https://www.flash.com' },
         })
         flushRequestQueue()
       } catch (err) {
