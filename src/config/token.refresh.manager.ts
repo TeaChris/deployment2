@@ -3,7 +3,7 @@
  * Created Date: Mo Aug 2025                                                   *
  * Author: Boluwatife Olasunkanmi O.                                           *
  * -----                                                                       *
- * Last Modified: Mon Aug 11 2025                                              *
+ * Last Modified: Tue Aug 12 2025                                              *
  * Modified By: Boluwatife Olasunkanmi O.                                      *
  * -----                                                                       *
  * HISTORY:                                                                    *
@@ -33,7 +33,7 @@ export async function refreshToken(): Promise<void> {
   if (!refreshPromise) {
     refreshPromise = (async () => {
       try {
-        await axios.get<ApiResponse<null>>('/auth/refresh', {
+        await axios.get<ApiResponse<null>>('/auth/refresh-token', {
           baseURL: process.env.API_BASE_URL,
           withCredentials: true,
           headers: {
