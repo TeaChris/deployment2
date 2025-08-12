@@ -25,8 +25,9 @@ export function addRequestToQueue(callback: () => void) {
 }
 
 function flushRequestQueue() {
-  requestQueue.forEach((cb) => cb())
+  const pending = requestQueue
   requestQueue = []
+  for (const cb of pending) cb()
 }
 
 export async function refreshToken(): Promise<void> {
