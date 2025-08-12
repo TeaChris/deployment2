@@ -3,7 +3,7 @@
  * Created Date: Mo Aug 2025                                                   *
  * Author: Boluwatife Olasunkanmi O.                                           *
  * -----                                                                       *
- * Last Modified: Mon Aug 11 2025                                              *
+ * Last Modified: Tue Aug 12 2025                                              *
  * Modified By: Boluwatife Olasunkanmi O.                                      *
  * -----                                                                       *
  * HISTORY:                                                                    *
@@ -19,6 +19,15 @@ import { toast } from 'sonner'
 import { isObject } from '@/utils'
 import { ApiResponse, ApiError } from '@/types'
 import { refreshToken, addRequestToQueue } from '@/config'
+
+// Helper function to get cookie value
+function getCookie(name: string): string | undefined {
+  if (typeof document === 'undefined') return undefined
+  const value = `; ${document.cookie}`
+  const parts = value.split(`; ${name}=`)
+  if (parts.length === 2) return parts.pop()?.split(';').shift()
+  return undefined
+}
 
 const BASEURL = process.env.NEXT_PUBLIC_BASE_URL
 const FRONTENDURL = process.env.NEXT_PUBLIC_FRONTEND_URL
@@ -77,22 +86,27 @@ function handleHttpError(status: number, apiError: ApiError) {
 }
 
 /* ---------- Retry after token refresh ---------- */
-async function retryAfterRefresh<T>(
-  error: AxiosError
-): Promise<AxiosResponse<ApiResponse<T>>> {
-  return new Promise((resolve, reject) => {
-    addRequestToQueue(async () => {
-      try {
-        if (!error.config) throw new Error('No config available for retry')
-        const retryResponse = await apiClient.request<ApiResponse<T>>(
-          error.config
-        )
-        resolve(retryResponse)
-      } catch (err) {
-        reject(err)
-      }
-    })
-  })
+// async function retryAfterRefresh<T>(
+//   error: AxiosError
+// ): Promise<AxiosResponse<ApiResponse<T>>> {
+//   return new Promise((resolve, reject) => {
+//     addRequestToQueue(async () => {
+//       try {
+//         if (!error.config) throw new Error('No config available for retry')
+//         const retryResponse = await apiClient.request<ApiResponse<T>>(
+//           error.config
+//         )
+//         resolve(retryResponse)
+//       } catch (err) {
+//         reject(err)
+//       }
+//     })
+//   })
+// }
+
+async function retryAfterRefresh<T>(error: AxiosError<ApiError>) {
+  const original = error.config!
+  return apiClient.request<ApiResponse<T>>({ ...original })
 }
 
 /* ---------- Redirect helper ---------- */
@@ -138,6 +152,11 @@ export async function api<T>(
         ...(isObject(data)
           ? { 'Content-Type': 'application/json', Accept: 'application/json' }
           : { 'Content-Type': 'multipart/form-data' }),
+        // Add CSRF token for state-changing requests
+        ...(method &&
+          ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) && {
+            'x-csrf-token': getCookie('csrfToken') || '',
+          }),
       },
       cancelToken: cancelToken.token,
     })
