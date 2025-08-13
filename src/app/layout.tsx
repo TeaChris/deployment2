@@ -5,7 +5,7 @@ import './globals.css'
 import { cn } from '@/utils'
 import { Navbar } from '@/components'
 import Providers from '@/config/provider'
-import { TokenRefreshStatus } from '@/components/TokenRefreshStatus'
+import { TokenRefreshStatus } from '@/components'
 
 const comfortaa = Comfortaa({
   subsets: ['latin'],
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   title: 'Flash!',
   description: 'A secure and modern web application',
   keywords: ['security', 'modern', 'web', 'application'],
-  authors: [{ name: 'Flash Team' }],
+  authors: [{ name: 'Boluwatife Olasunkanmi' }],
   viewport: 'width=device-width, initial-scale=1',
   robots: 'noindex, nofollow', // Remove in production
   other: {
@@ -45,7 +45,7 @@ export default function RootLayout({
       )}
     >
       <body
-        className="min-h-screen pt-8 bg-slate-50 antialiased w-full overflow-x-hidden"
+        className="min-h-screen bg-slate-50 antialiased w-full overflow-x-hidden"
         suppressHydrationWarning
       >
         <Providers>
