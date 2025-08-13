@@ -20,13 +20,25 @@ import { isObject } from '@/utils'
 import { ApiResponse, ApiError } from '@/types'
 import { refreshToken, addRequestToQueue } from '@/config'
 
-// Helper function to get cookie value
+// Helper function to get cookie value with XSS protection
 function getCookie(name: string): string | undefined {
   if (typeof document === 'undefined') return undefined
-  const value = `; ${document.cookie}`
-  const parts = value.split(`; ${name}=`)
-  if (parts.length === 2) return parts.pop()?.split(';').shift()
-  return undefined
+
+  try {
+    const value = `; ${document.cookie}`
+    const parts = value.split(`; ${name}=`)
+    if (parts.length === 2) {
+      const cookieValue = parts.pop()?.split(';').shift()
+      // Basic XSS protection - only allow alphanumeric, hyphens, and underscores
+      if (cookieValue && /^[a-zA-Z0-9\-_]+$/.test(cookieValue)) {
+        return cookieValue
+      }
+    }
+    return undefined
+  } catch (error) {
+    console.error('Error parsing cookie:', error)
+    return undefined
+  }
 }
 
 const BASEURL = process.env.NEXT_PUBLIC_BASE_URL
@@ -176,10 +188,13 @@ export async function api<T>(
 
     if (status === 401) {
       try {
+        // Try to refresh token
         await refreshToken()
         const retryResponse = await retryAfterRefresh<T>(error)
         return { data: retryResponse.data }
-      } catch {
+      } catch (refreshError) {
+        // If refresh fails, user needs to sign in again
+        console.error('Token refresh failed:', refreshError)
         toast.error('Session expired. Please sign in again.')
         handleRedirect(401)
       }
