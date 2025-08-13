@@ -1,6 +1,7 @@
 'use client'
 
 import { IUser } from '@/types'
+import { useAuthStore } from '@/store'
 import { useApiMutation } from '@/config'
 import { cn, signInSchema, TSignInSchema } from '@/utils'
 import { Button, buttonVariants, Input, Label } from '@/components'
@@ -11,7 +12,6 @@ import { useForm } from 'react-hook-form'
 import { ArrowRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useAuthStore } from '@/store/auth'
 
 const Page = () => {
   const router = useRouter()
