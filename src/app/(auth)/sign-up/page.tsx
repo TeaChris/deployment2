@@ -20,10 +20,10 @@ export default function Page() {
 
   const {
     reset,
+    control,
     register,
     handleSubmit,
     formState: { errors },
-    control,
   } = useForm<TSignUpSchema>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
