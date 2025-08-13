@@ -1,9 +1,9 @@
 /*
  * ###############################################################################
- * Created Date: Tue Aug 12 2025                                               *
+ * Created Date: Wed Aug 13 2025                                               *
  * Author: Boluwatife Olasunkanmi O.                                           *
  * -----                                                                       *
- * Last Modified: We/08/2025 06:nn:31
+ * Last Modified: We/08/2025 06:nn:05
  * Modified By: Boluwatife Olasunkanmi O.
  * -----                                                                       *
  * HISTORY:                                                                    *
@@ -13,28 +13,31 @@
 
 'use client'
 
-import { useProactiveRefresh } from '@/hooks/use.proactive.refresh'
+import { useProactiveRefresh } from '@/hooks/useProactiveRefresh'
 
 export function TokenRefreshStatus() {
   const { isActive, lastRefreshTime, nextRefreshTime, refreshCount } =
     useProactiveRefresh()
 
-  if (!isActive) {
+  // Only show in development mode and when active
+  if (process.env.NODE_ENV !== 'development' || !isActive) {
     return null
   }
 
   return (
-    <div className="fixed bottom-4 right-4 bg-white border border-gray-200 rounded-lg p-4 shadow-lg max-w-sm">
-      <h3 className="font-semibold text-sm mb-2">Token Refresh Status</h3>
+    <div className="fixed bottom-4 right-4 bg-white border border-gray-200 rounded-lg p-4 shadow-lg max-w-sm z-50">
+      <h3 className="font-semibold text-sm mb-2">🔄 Token Refresh Status</h3>
       <div className="space-y-1 text-xs">
-        <div>
-          <span className="font-medium">Status:</span>{' '}
+        <div className="flex items-center gap-2">
+          <span className="font-medium">Status:</span>
           <span
-            className={`inline-block w-2 h-2 rounded-full mr-1 ${
+            className={`inline-block w-2 h-2 rounded-full ${
               isActive ? 'bg-green-500' : 'bg-red-500'
             }`}
           ></span>
-          {isActive ? 'Active' : 'Inactive'}
+          <span className={isActive ? 'text-green-600' : 'text-red-600'}>
+            {isActive ? 'Active' : 'Inactive'}
+          </span>
         </div>
         <div>
           <span className="font-medium">Refresh Count:</span> {refreshCount}
@@ -51,6 +54,9 @@ export function TokenRefreshStatus() {
             {nextRefreshTime.toLocaleTimeString()}
           </div>
         )}
+        <div className="text-xs text-gray-500 mt-2">
+          Access tokens expire in 15 minutes
+        </div>
       </div>
     </div>
   )
