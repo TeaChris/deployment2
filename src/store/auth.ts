@@ -3,10 +3,7 @@ import { createJSONStorage, persist } from 'zustand/middleware'
 
 import { api } from '@/utils'
 import { ApiError, IUser } from '@/types'
-import {
-  clearRefreshTimer,
-  initializeProactiveRefresh,
-} from '@/config/token.refresh.manager'
+import { clearRefreshTimer, initializeProactiveRefresh } from '@/config'
 
 interface AuthState {
   user: IUser | null
@@ -57,12 +54,20 @@ export const useAuthStore = create<AuthState>()(
       logout: async () => {
         try {
           set({ isLoading: true })
-          await api('/auth/signout')
+          await api('/auth/signout', {
+            method: 'POST',
+          })
         } catch (error) {
           console.error('Logout failed:', error)
         } finally {
           // Clear refresh timer on logout
           clearRefreshTimer()
+
+          // Dispatch logout event for proactive refresh cleanup
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('user-logout'))
+          }
+
           set({
             user: null,
             isAuthenticated: false,
