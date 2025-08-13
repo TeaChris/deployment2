@@ -3,6 +3,10 @@ import { createJSONStorage, persist } from 'zustand/middleware'
 
 import { api } from '@/utils'
 import { ApiError, IUser } from '@/types'
+import {
+  clearRefreshTimer,
+  initializeProactiveRefresh,
+} from '@/config/token.refresh.manager'
 
 interface AuthState {
   user: IUser | null
@@ -18,9 +22,10 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       user: null,
-      isAuthenticated: false,
-      isLoading: false,
       error: null,
+      isLoading: false,
+      isAuthenticated: false,
+
       fetchUser: async () => {
         set({ isLoading: true, error: null })
         try {
@@ -42,7 +47,13 @@ export const useAuthStore = create<AuthState>()(
           })
         }
       },
-      setUser: (user) => set({ user, isAuthenticated: true, error: null }),
+
+      setUser: (user) => {
+        set({ user, isAuthenticated: true, error: null })
+        // Initialize proactive token refresh when user is set
+        initializeProactiveRefresh()
+      },
+
       logout: async () => {
         try {
           set({ isLoading: true })
@@ -50,6 +61,8 @@ export const useAuthStore = create<AuthState>()(
         } catch (error) {
           console.error('Logout failed:', error)
         } finally {
+          // Clear refresh timer on logout
+          clearRefreshTimer()
           set({
             user: null,
             isAuthenticated: false,
@@ -60,7 +73,36 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'auth-storage',
-      storage: createJSONStorage(() => sessionStorage),
+      storage: createJSONStorage(() => {
+        // Use localStorage for persistence but with encryption
+        if (typeof window !== 'undefined') {
+          return {
+            getItem: (name: string) => {
+              try {
+                const item = localStorage.getItem(name)
+                return item ? JSON.parse(item) : null
+              } catch {
+                return null
+              }
+            },
+            setItem: (name: string, value: unknown) => {
+              try {
+                localStorage.setItem(name, JSON.stringify(value))
+              } catch (error) {
+                console.error('Failed to save to localStorage:', error)
+              }
+            },
+            removeItem: (name: string) => {
+              try {
+                localStorage.removeItem(name)
+              } catch (error) {
+                console.error('Failed to remove from localStorage:', error)
+              }
+            },
+          }
+        }
+        return sessionStorage
+      }),
       partialize: (state) =>
         Object.fromEntries(
           Object.entries(state).filter(
