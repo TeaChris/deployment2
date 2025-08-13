@@ -3,7 +3,7 @@
  * Created Date: Mo Aug 2025                                                   *
  * Author: Boluwatife Olasunkanmi O.                                           *
  * -----                                                                       *
- * Last Modified: Mon Aug 11 2025                                              *
+ * Last Modified: Tue Aug 12 2025                                              *
  * Modified By: Boluwatife Olasunkanmi O.                                      *
  * -----                                                                       *
  * HISTORY:                                                                    *
@@ -13,8 +13,8 @@
 
 import {
   useQuery,
-  UseQueryOptions,
   useMutation,
+  UseQueryOptions,
   UseMutationOptions,
 } from '@tanstack/react-query'
 
@@ -50,14 +50,14 @@ export function useApiMutation<T, V>(
   return useMutation<ApiResponse<T>, Error, V>({
     mutationKey,
     mutationFn: (variables: V) => {
-      let payload = variables as Record<string, unknown> | FormData | undefined;
+      let payload = variables as Record<string, unknown> | FormData | undefined
       if (wrapKey) {
-        payload = { [wrapKey]: variables };
+        payload = { [wrapKey]: variables }
       }
       return api<T>(endpoint, payload, method).then((res) => {
         if (res.error) throw new Error(res.error.message)
         return res.data!
-      });
+      })
     },
     ...options,
   })
