@@ -3,7 +3,7 @@
  * Created Date: Wed Aug 13 2025                                               *
  * Author: Boluwatife Olasunkanmi O.                                           *
  * -----                                                                       *
- * Last Modified: We/08/2025 06:nn:05
+ * Last Modified: We/08/2025 07:nn:40
  * Modified By: Boluwatife Olasunkanmi O.
  * -----                                                                       *
  * HISTORY:                                                                    *
@@ -13,7 +13,7 @@
 
 'use client'
 
-import { useProactiveRefresh } from '@/hooks/useProactiveRefresh'
+import { useProactiveRefresh } from '@/hooks/proactive.refresh'
 
 export function TokenRefreshStatus() {
   const { isActive, lastRefreshTime, nextRefreshTime, refreshCount } =
