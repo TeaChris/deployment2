@@ -31,19 +31,26 @@ function hasValidAccessToken(): boolean {
   try {
     const value = `; ${document.cookie}`
     const parts = value.split('; flashAccessToken=')
+    console.log('Cookie check - Cookie value:', value)
+    console.log('Cookie check - Parts:', parts.length)
     if (parts.length === 2) {
       const token = parts.pop()?.split(';').shift()
+      console.log('Cookie check - Token found:', !!token)
       if (token && /^[a-zA-Z0-9\-_.]+$/.test(token)) {
         // Decode token to check expiration
         const parts = token.split('.')
+        console.log('Cookie check - Token parts:', parts.length)
         if (parts.length === 3) {
           const payload = parts[1]
           const decoded = JSON.parse(atob(payload))
           const now = Date.now() / 1000
-          return decoded.exp > now
+          const isValid = decoded.exp > now
+          console.log('Cookie check - Token valid:', isValid, 'Exp:', decoded.exp, 'Now:', now)
+          return isValid
         }
       }
     }
+    console.log('Cookie check - No valid token found')
     return false
   } catch (error) {
     console.error('Error checking access token:', error)
@@ -61,9 +68,16 @@ export function useProactiveRefresh() {
 
   useEffect(() => {
     // Only initialize if user has valid access token
-    if (hasValidAccessToken()) {
+    const hasToken = hasValidAccessToken()
+    console.log('useProactiveRefresh - Has valid token:', hasToken)
+    
+    if (hasToken) {
+      console.log('useProactiveRefresh - Initializing proactive refresh')
       initializeProactiveRefresh()
-      setState((prev) => ({ ...prev, isActive: true }))
+      setState((prev) => {
+        console.log('useProactiveRefresh - Setting isActive to true')
+        return { ...prev, isActive: true }
+      })
     }
 
     // Cleanup on unmount
