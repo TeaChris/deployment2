@@ -2,7 +2,7 @@
 
 import { IUser } from '@/types'
 import { useAuthStore } from '@/store'
-import { useApiMutation } from '@/config'
+import { initializeProactiveRefresh, useApiMutation } from '@/config'
 import { cn, signInSchema, TSignInSchema } from '@/utils'
 import { Button, buttonVariants, Input, Label } from '@/components'
 
@@ -15,7 +15,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 
 const Page = () => {
   const router = useRouter()
-  const { setUser } = useAuthStore()
+  const { setUser, fetchUser } = useAuthStore()
 
   const {
     reset,
@@ -34,6 +34,9 @@ const Page = () => {
     {
       onSuccess: (data) => {
         toast.success('Signed in successfully')
+        // initializeProactiveRefresh()
+        // fetchUser()
+
         setUser(data.data)
         router.push('/')
         reset()
