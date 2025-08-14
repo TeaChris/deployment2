@@ -33,6 +33,7 @@ export const useAuthStore = create<AuthState>()(
               isAuthenticated: true,
               isLoading: false,
             })
+            initializeProactiveRefresh() // Initialize proactive refresh after successful user fetch
           }
         } catch (error: ApiError | unknown) {
           console.error('Failed to fetch user:', error)
