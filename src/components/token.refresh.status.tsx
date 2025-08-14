@@ -3,7 +3,7 @@
  * Created Date: Wed Aug 13 2025                                               *
  * Author: Boluwatife Olasunkanmi O.                                           *
  * -----                                                                       *
- * Last Modified: We/08/2025 07:nn:40
+ * Last Modified: We/08/2025 08:nn:44
  * Modified By: Boluwatife Olasunkanmi O.
  * -----                                                                       *
  * HISTORY:                                                                    *
@@ -19,8 +19,8 @@ export function TokenRefreshStatus() {
   const { isActive, lastRefreshTime, nextRefreshTime, refreshCount } =
     useProactiveRefresh()
 
-  // Only show in development mode and when active
-  if (process.env.NODE_ENV !== 'development' || !isActive) {
+  // Only show in development mode
+  if (process.env.NODE_ENV !== 'development') {
     return null
   }
 
@@ -31,9 +31,7 @@ export function TokenRefreshStatus() {
         <div className="flex items-center gap-2">
           <span className="font-medium">Status:</span>
           <span
-            className={`inline-block w-2 h-2 rounded-full ${
-              isActive ? 'bg-green-500' : 'bg-red-500'
-            }`}
+            className={`inline-block w-2 h-2 rounded-full ${isActive ? 'bg-green-500' : 'bg-red-500'}`}
           ></span>
           <span className={isActive ? 'text-green-600' : 'text-red-600'}>
             {isActive ? 'Active' : 'Inactive'}
@@ -54,8 +52,12 @@ export function TokenRefreshStatus() {
             {nextRefreshTime.toLocaleTimeString()}
           </div>
         )}
-        <div className="text-xs text-gray-500 mt-2">
-          Access tokens expire in 15 minutes
+        <div className="mt-2 pt-2 border-t border-gray-200">
+          <span className="font-medium">Debug Info:</span>
+          <div className="mt-1">
+            <span className="font-medium">Cookie Present:</span>{' '}
+            {typeof window !== 'undefined' && document.cookie.includes('flashAccessToken') ? 'Yes' : 'No'}
+          </div>
         </div>
       </div>
     </div>
