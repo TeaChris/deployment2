@@ -78,23 +78,32 @@ function getTimeUntilExpiry(token: string): number {
 function scheduleProactiveRefresh(): void {
   // Clear existing timer
   if (refreshTimer) {
+    console.log('scheduleProactiveRefresh - Clearing existing timer')
     clearTimeout(refreshTimer)
     refreshTimer = null
   }
 
   const accessToken = getCookie('flashAccessToken')
-  if (!accessToken) return
+  console.log('scheduleProactiveRefresh - Access token exists:', !!accessToken)
+  
+  if (!accessToken) {
+    console.log('scheduleProactiveRefresh - No access token, not scheduling')
+    return
+  }
 
   const timeUntilExpiry = getTimeUntilExpiry(accessToken)
+  console.log('scheduleProactiveRefresh - Time until expiry (ms):', timeUntilExpiry)
 
   // If token expires in less than 5 minutes, refresh immediately
   if (timeUntilExpiry < 5 * 60 * 1000) {
+    console.log('scheduleProactiveRefresh - Token expires soon, refreshing immediately')
     refreshToken()
     return
   }
 
   // Schedule refresh 5 minutes before expiry
   const refreshTime = timeUntilExpiry - 5 * 60 * 1000
+  console.log('scheduleProactiveRefresh - Scheduling refresh in (ms):', refreshTime)
 
   refreshTimer = setTimeout(() => {
     refreshToken()
@@ -116,6 +125,17 @@ function scheduleProactiveRefresh(): void {
 export function initializeProactiveRefresh(): void {
   if (typeof window === 'undefined') return
 
+  console.log('initializeProactiveRefresh called')
+  
+  // Check if we have a valid access token
+  const accessToken = getCookie('flashAccessToken')
+  console.log('initializeProactiveRefresh - Access token exists:', !!accessToken)
+  
+  if (!accessToken) {
+    console.log('initializeProactiveRefresh - No access token, not initializing')
+    return
+  }
+
   // Schedule initial refresh
   scheduleProactiveRefresh()
 
@@ -130,6 +150,8 @@ export function initializeProactiveRefresh(): void {
   window.addEventListener('focus', () => {
     scheduleProactiveRefresh()
   })
+  
+  console.log('initializeProactiveRefresh - Successfully initialized')
 }
 
 // Clean up timers and listeners
@@ -151,15 +173,21 @@ function flushRequestQueue() {
 }
 
 export async function refreshToken(): Promise<void> {
+  console.log('refreshToken called')
+  
   if (!refreshPromise) {
+    console.log('refreshToken - Creating new refresh promise')
     refreshPromise = (async () => {
       try {
+        console.log('refreshToken - Sending refresh request')
         await axios.post<ApiResponse<null>>('/auth/refresh-token', null, {
           baseURL: process.env.NEXT_PUBLIC_BASE_URL,
           withCredentials: true,
           headers: { 'x-referrer': FRONTENDURL ?? 'https://www.flash.com' },
         })
 
+        console.log('refreshToken - Refresh successful')
+        
         // Dispatch custom event for monitoring
         window.dispatchEvent(new CustomEvent('token-refresh'))
 
@@ -175,6 +203,8 @@ export async function refreshToken(): Promise<void> {
         refreshPromise = null
       }
     })()
+  } else {
+    console.log('refreshToken - Refresh already in progress, reusing promise')
   }
   return refreshPromise
 }
