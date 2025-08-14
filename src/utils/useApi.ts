@@ -3,7 +3,7 @@
  * Created Date: Mo Aug 2025                                                   *
  * Author: Boluwatife Olasunkanmi O.                                           *
  * -----                                                                       *
- * Last Modified: Tue Aug 12 2025                                              *
+ * Last Modified: Wed Aug 13 2025                                              *
  * Modified By: Boluwatife Olasunkanmi O.                                      *
  * -----                                                                       *
  * HISTORY:                                                                    *
@@ -41,7 +41,7 @@ function getCookie(name: string): string | undefined {
   }
 }
 
-const BASEURL = process.env.NEXT_PUBLIC_BASE_URL
+const BASEURL = process.env.VITE_PUBLIC_BASE_URL
 const FRONTENDURL = process.env.NEXT_PUBLIC_FRONTEND_URL
 
 /* ---------- Cancel token store ---------- */
