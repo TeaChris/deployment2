@@ -5,7 +5,7 @@ import './globals.css'
 import { cn } from '@/utils'
 import { Navbar } from '@/components'
 import Providers from '@/config/provider'
-import { TokenRefreshStatus } from '@/components/token.refresh.status'
+import { TokenRefreshStatus } from '@/components'
 
 const comfortaa = Comfortaa({
   subsets: ['latin'],
